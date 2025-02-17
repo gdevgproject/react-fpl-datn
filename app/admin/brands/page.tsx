@@ -1,46 +1,27 @@
-'use client'
+"use client"
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
-import { ErrorMessage } from '@/components/ui/error-message'
-import { Input } from '@/components/ui/input'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import { toast } from '@/components/ui/use-toast'
-import type { Brand } from '@/lib/mockData'
-import {
-  createBrand,
-  deleteBrand,
-  fetchBrands,
-  updateBrand
-} from '@/lib/mockData'
-import { Pencil, Trash } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ErrorMessage } from "@/components/ui/error-message"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { fetchBrands, createBrand, updateBrand, deleteBrand } from "@/lib/mockData"
+import type { Brand } from "@/lib/mockData"
+import { toast } from "@/components/ui/use-toast"
+import { Pencil, Trash } from "lucide-react"
 
 export default function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newBrand, setNewBrand] = useState({
-    name: '',
-    description: '',
-    logo: ''
-  })
+  const [newBrand, setNewBrand] = useState({ name: "", description: "", logo: "" })
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean
-    brandId: string | null
-  }>({
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; brandId: string | null }>({
     isOpen: false,
-    brandId: null
+    brandId: null,
   })
 
   useEffect(() => {
@@ -54,7 +35,7 @@ export default function BrandsPage() {
       const fetchedBrands = await fetchBrands()
       setBrands(fetchedBrands)
     } catch (err) {
-      setError('Failed to fetch brands. Please try again.')
+      setError("Failed to fetch brands. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -66,13 +47,13 @@ export default function BrandsPage() {
     try {
       const createdBrand = await createBrand(newBrand)
       setBrands([...brands, createdBrand])
-      setNewBrand({ name: '', description: '', logo: '' })
+      setNewBrand({ name: "", description: "", logo: "" })
       toast({
-        title: 'Brand created',
-        description: 'The brand has been successfully created.'
+        title: "Brand created",
+        description: "The brand has been successfully created.",
       })
     } catch (err) {
-      setError('Failed to create brand. Please try again.')
+      setError("Failed to create brand. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -84,18 +65,14 @@ export default function BrandsPage() {
     setError(null)
     try {
       const updatedBrand = await updateBrand(editingBrand.id, editingBrand)
-      setBrands(
-        brands.map((brand) =>
-          brand.id === updatedBrand.id ? updatedBrand : brand
-        )
-      )
+      setBrands(brands.map((brand) => (brand.id === updatedBrand.id ? updatedBrand : brand)))
       setEditingBrand(null)
       toast({
-        title: 'Brand updated',
-        description: 'The brand has been successfully updated.'
+        title: "Brand updated",
+        description: "The brand has been successfully updated.",
       })
     } catch (err) {
-      setError('Failed to update brand. Please try again.')
+      setError("Failed to update brand. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -111,15 +88,13 @@ export default function BrandsPage() {
       setError(null)
       try {
         await deleteBrand(deleteConfirmation.brandId)
-        setBrands(
-          brands.filter((brand) => brand.id !== deleteConfirmation.brandId)
-        )
+        setBrands(brands.filter((brand) => brand.id !== deleteConfirmation.brandId))
         toast({
-          title: 'Brand deleted',
-          description: 'The brand has been successfully deleted.'
+          title: "Brand deleted",
+          description: "The brand has been successfully deleted.",
         })
       } catch (err) {
-        setError('Failed to delete brand. Please try again.')
+        setError("Failed to delete brand. Please try again.")
       } finally {
         setIsLoading(false)
         setDeleteConfirmation({ isOpen: false, brandId: null })
@@ -131,35 +106,29 @@ export default function BrandsPage() {
   if (error) return <ErrorMessage message={error} />
 
   return (
-    <div className='space-y-4'>
-      <h2 className='text-3xl font-bold'>Brand Management</h2>
+    <div className="space-y-4">
+      <h2 className="text-3xl font-bold">Brand Management</h2>
 
       <Card>
         <CardHeader>
           <CardTitle>Create New Brand</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='flex space-x-2'>
+          <div className="flex space-x-2">
             <Input
-              placeholder='Brand Name'
+              placeholder="Brand Name"
               value={newBrand.name}
-              onChange={(e) =>
-                setNewBrand({ ...newBrand, name: e.target.value })
-              }
+              onChange={(e) => setNewBrand({ ...newBrand, name: e.target.value })}
             />
             <Input
-              placeholder='Description'
+              placeholder="Description"
               value={newBrand.description}
-              onChange={(e) =>
-                setNewBrand({ ...newBrand, description: e.target.value })
-              }
+              onChange={(e) => setNewBrand({ ...newBrand, description: e.target.value })}
             />
             <Input
-              placeholder='Logo URL'
+              placeholder="Logo URL"
               value={newBrand.logo}
-              onChange={(e) =>
-                setNewBrand({ ...newBrand, logo: e.target.value })
-              }
+              onChange={(e) => setNewBrand({ ...newBrand, logo: e.target.value })}
             />
             <Button onClick={handleCreateBrand}>Create Brand</Button>
           </div>
@@ -186,25 +155,15 @@ export default function BrandsPage() {
                   <TableCell>{brand.name}</TableCell>
                   <TableCell>{brand.description}</TableCell>
                   <TableCell>
-                    <img
-                      src={brand.logo || '/placeholder.svg'}
-                      alt={brand.name}
-                      className='w-10 h-10 object-contain'
-                    />
+                    <img src={brand.logo || "/placeholder.svg"} alt={brand.name} className="w-10 h-10 object-contain" />
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant='ghost'
-                      onClick={() => setEditingBrand(brand)}
-                    >
-                      <Pencil className='w-4 h-4 mr-2' />
+                    <Button variant="ghost" onClick={() => setEditingBrand(brand)}>
+                      <Pencil className="w-4 h-4 mr-2" />
                       Edit
                     </Button>
-                    <Button
-                      variant='ghost'
-                      onClick={() => handleDeleteBrand(brand.id)}
-                    >
-                      <Trash className='w-4 h-4 mr-2' />
+                    <Button variant="ghost" onClick={() => handleDeleteBrand(brand.id)}>
+                      <Trash className="w-4 h-4 mr-2" />
                       Delete
                     </Button>
                   </TableCell>
@@ -221,30 +180,21 @@ export default function BrandsPage() {
             <CardTitle>Edit Brand</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='flex space-x-2'>
+            <div className="flex space-x-2">
               <Input
-                placeholder='Brand Name'
+                placeholder="Brand Name"
                 value={editingBrand.name}
-                onChange={(e) =>
-                  setEditingBrand({ ...editingBrand, name: e.target.value })
-                }
+                onChange={(e) => setEditingBrand({ ...editingBrand, name: e.target.value })}
               />
               <Input
-                placeholder='Description'
+                placeholder="Description"
                 value={editingBrand.description}
-                onChange={(e) =>
-                  setEditingBrand({
-                    ...editingBrand,
-                    description: e.target.value
-                  })
-                }
+                onChange={(e) => setEditingBrand({ ...editingBrand, description: e.target.value })}
               />
               <Input
-                placeholder='Logo URL'
+                placeholder="Logo URL"
                 value={editingBrand.logo}
-                onChange={(e) =>
-                  setEditingBrand({ ...editingBrand, logo: e.target.value })
-                }
+                onChange={(e) => setEditingBrand({ ...editingBrand, logo: e.target.value })}
               />
               <Button onClick={handleUpdateBrand}>Update Brand</Button>
             </div>
@@ -256,9 +206,10 @@ export default function BrandsPage() {
         isOpen={deleteConfirmation.isOpen}
         onClose={() => setDeleteConfirmation({ isOpen: false, brandId: null })}
         onConfirm={confirmDelete}
-        title='Delete Brand'
-        description='Are you sure you want to delete this brand? This action cannot be undone.'
+        title="Delete Brand"
+        description="Are you sure you want to delete this brand? This action cannot be undone."
       />
     </div>
   )
 }
+

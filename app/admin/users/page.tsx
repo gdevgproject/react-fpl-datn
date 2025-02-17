@@ -1,36 +1,25 @@
-'use client'
+"use client"
 
-import { ActionMenu } from '@/components/ui/action-menu'
-import { Badge } from '@/components/ui/badge'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
-import { ErrorMessage } from '@/components/ui/error-message'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import { toast } from '@/components/ui/use-toast'
-import type { User } from '@/lib/mockData'
-import { deleteUser, fetchUsers, updateUser } from '@/lib/mockData'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-
-const router = useRouter()
+import { useState, useEffect } from "react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { ErrorMessage } from "@/components/ui/error-message"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { fetchUsers, updateUser, deleteUser } from "@/lib/mockData"
+import type { User } from "@/lib/mockData"
+import { toast } from "@/components/ui/use-toast"
+import { ActionMenu } from "@/components/ui/action-menu"
+import { useRouter } from "next/navigation"
 
 export default function UsersPage() {
+  const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean
-    userId: string | null
-  }>({
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; userId: string | null }>({
     isOpen: false,
-    userId: null
+    userId: null,
   })
 
   useEffect(() => {
@@ -44,16 +33,13 @@ export default function UsersPage() {
       const fetchedUsers = await fetchUsers()
       setUsers(fetchedUsers)
     } catch (err) {
-      setError('Failed to fetch users. Please try again.')
+      setError("Failed to fetch users. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleStatusChange = async (
-    userId: string,
-    newStatus: User['status']
-  ) => {
+  const handleStatusChange = async (userId: string, newStatus: User["status"]) => {
     setIsLoading(true)
     setError(null)
     try {
@@ -61,12 +47,12 @@ export default function UsersPage() {
       if (updatedUser) {
         setUsers(users.map((user) => (user.id === userId ? updatedUser : user)))
         toast({
-          title: 'User status updated',
-          description: `User ${userId} status changed to ${newStatus}.`
+          title: "User status updated",
+          description: `User ${userId} status changed to ${newStatus}.`,
         })
       }
     } catch (err) {
-      setError('Failed to update user status. Please try again.')
+      setError("Failed to update user status. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -84,11 +70,11 @@ export default function UsersPage() {
         await deleteUser(deleteConfirmation.userId)
         setUsers(users.filter((user) => user.id !== deleteConfirmation.userId))
         toast({
-          title: 'User deleted',
-          description: 'The user has been successfully deleted.'
+          title: "User deleted",
+          description: "The user has been successfully deleted.",
         })
       } catch (err) {
-        setError('Failed to delete user. Please try again.')
+        setError("Failed to delete user. Please try again.")
       } finally {
         setIsLoading(false)
         setDeleteConfirmation({ isOpen: false, userId: null })
@@ -101,7 +87,7 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold mb-6'>Users</h1>
+      <h1 className="text-2xl font-bold mb-6">Users</h1>
       <Table>
         <TableHeader>
           <TableRow>
@@ -121,18 +107,14 @@ export default function UsersPage() {
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>
-                <Badge
-                  variant={user.status === 'active' ? 'success' : 'secondary'}
-                >
-                  {user.status}
-                </Badge>
+                <Badge variant={user.status === "active" ? "success" : "secondary"}>{user.status}</Badge>
               </TableCell>
               <TableCell>
                 <ActionMenu
                   id={user.id}
                   onView={() => router.push(`/admin/users/${user.id}`)}
                   onDelete={() => handleDeleteUser(user.id)}
-                  onBlock={() => handleStatusChange(user.id, 'blocked')}
+                  onBlock={() => handleStatusChange(user.id, "blocked")}
                 />
               </TableCell>
             </TableRow>
@@ -143,9 +125,10 @@ export default function UsersPage() {
         isOpen={deleteConfirmation.isOpen}
         onClose={() => setDeleteConfirmation({ isOpen: false, userId: null })}
         onConfirm={confirmDelete}
-        title='Delete User'
-        description='Are you sure you want to delete this user? This action cannot be undone.'
+        title="Delete User"
+        description="Are you sure you want to delete this user? This action cannot be undone."
       />
     </div>
   )
 }
+

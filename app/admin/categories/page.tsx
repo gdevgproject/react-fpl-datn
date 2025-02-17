@@ -1,46 +1,26 @@
-'use client'
+"use client"
 
-import { Button } from '@/components/ui/button'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
-import { ErrorMessage } from '@/components/ui/error-message'
-import { Input } from '@/components/ui/input'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import { toast } from '@/components/ui/use-toast'
-import type { Category } from '@/lib/mockData'
-import {
-  createCategory,
-  deleteCategory,
-  fetchCategories,
-  updateCategory
-} from '@/lib/mockData'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ErrorMessage } from "@/components/ui/error-message"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"
+import { fetchCategories, createCategory, updateCategory, deleteCategory } from "@/lib/mockData"
+import type { Category } from "@/lib/mockData"
+import { toast } from "@/components/ui/use-toast"
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newCategory, setNewCategory] = useState({ name: '', parentId: '' })
+  const [newCategory, setNewCategory] = useState({ name: "", parentId: "" })
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean
-    categoryId: string | null
-  }>({
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; categoryId: string | null }>({
     isOpen: false,
-    categoryId: null
+    categoryId: null,
   })
 
   useEffect(() => {
@@ -54,7 +34,7 @@ export default function CategoriesPage() {
       const fetchedCategories = await fetchCategories()
       setCategories(fetchedCategories)
     } catch (err) {
-      setError('Failed to fetch categories. Please try again.')
+      setError("Failed to fetch categories. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -66,13 +46,13 @@ export default function CategoriesPage() {
     try {
       const createdCategory = await createCategory(newCategory)
       setCategories([...categories, createdCategory])
-      setNewCategory({ name: '', parentId: '' })
+      setNewCategory({ name: "", parentId: "" })
       toast({
-        title: 'Category created',
-        description: 'The category has been successfully created.'
+        title: "Category created",
+        description: "The category has been successfully created.",
       })
     } catch (err) {
-      setError('Failed to create category. Please try again.')
+      setError("Failed to create category. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -83,22 +63,15 @@ export default function CategoriesPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const updatedCategory = await updateCategory(
-        editingCategory.id,
-        editingCategory
-      )
-      setCategories(
-        categories.map((cat) =>
-          cat.id === updatedCategory.id ? updatedCategory : cat
-        )
-      )
+      const updatedCategory = await updateCategory(editingCategory.id, editingCategory)
+      setCategories(categories.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat)))
       setEditingCategory(null)
       toast({
-        title: 'Category updated',
-        description: 'The category has been successfully updated.'
+        title: "Category updated",
+        description: "The category has been successfully updated.",
       })
     } catch (err) {
-      setError('Failed to update category. Please try again.')
+      setError("Failed to update category. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -114,15 +87,13 @@ export default function CategoriesPage() {
       setError(null)
       try {
         await deleteCategory(deleteConfirmation.categoryId)
-        setCategories(
-          categories.filter((cat) => cat.id !== deleteConfirmation.categoryId)
-        )
+        setCategories(categories.filter((cat) => cat.id !== deleteConfirmation.categoryId))
         toast({
-          title: 'Category deleted',
-          description: 'The category has been successfully deleted.'
+          title: "Category deleted",
+          description: "The category has been successfully deleted.",
         })
       } catch (err) {
-        setError('Failed to delete category. Please try again.')
+        setError("Failed to delete category. Please try again.")
       } finally {
         setIsLoading(false)
         setDeleteConfirmation({ isOpen: false, categoryId: null })
@@ -135,28 +106,24 @@ export default function CategoriesPage() {
 
   return (
     <div>
-      <h1 className='text-2xl font-bold mb-6'>Categories</h1>
-      <div className='mb-6'>
-        <h2 className='text-xl font-semibold mb-2'>Create New Category</h2>
-        <div className='flex space-x-2'>
+      <h1 className="text-2xl font-bold mb-6">Categories</h1>
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Create New Category</h2>
+        <div className="flex space-x-2">
           <Input
-            placeholder='Category Name'
+            placeholder="Category Name"
             value={newCategory.name}
-            onChange={(e) =>
-              setNewCategory({ ...newCategory, name: e.target.value })
-            }
+            onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
           />
           <Select
             value={newCategory.parentId}
-            onValueChange={(value) =>
-              setNewCategory({ ...newCategory, parentId: value })
-            }
+            onValueChange={(value) => setNewCategory({ ...newCategory, parentId: value })}
           >
             <SelectTrigger>
-              <SelectValue placeholder='Parent Category' />
+              <SelectValue placeholder="Parent Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='0'>None</SelectItem>
+              <SelectItem value="0">None</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
                   {cat.name}
@@ -179,20 +146,12 @@ export default function CategoriesPage() {
           {categories.map((category) => (
             <TableRow key={category.id}>
               <TableCell>{category.name}</TableCell>
+              <TableCell>{category.parentId ? category.parentId : "None"}</TableCell>
               <TableCell>
-                {category.parentId ? category.parentId : 'None'}
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant='ghost'
-                  onClick={() => setEditingCategory(category)}
-                >
+                <Button variant="ghost" onClick={() => setEditingCategory(category)}>
                   Edit
                 </Button>
-                <Button
-                  variant='destructive'
-                  onClick={() => handleDeleteCategory(category.id)}
-                >
+                <Button variant="destructive" onClick={() => handleDeleteCategory(category.id)}>
                   Delete
                 </Button>
               </TableCell>
@@ -201,27 +160,23 @@ export default function CategoriesPage() {
         </TableBody>
       </Table>
       {editingCategory && (
-        <div className='mt-6'>
-          <h2 className='text-xl font-semibold mb-2'>Edit Category</h2>
-          <div className='flex space-x-2'>
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-2">Edit Category</h2>
+          <div className="flex space-x-2">
             <Input
-              placeholder='Category Name'
+              placeholder="Category Name"
               value={editingCategory.name}
-              onChange={(e) =>
-                setEditingCategory({ ...editingCategory, name: e.target.value })
-              }
+              onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
             />
             <Select
               value={editingCategory.parentId}
-              onValueChange={(value) =>
-                setEditingCategory({ ...editingCategory, parentId: value })
-              }
+              onValueChange={(value) => setEditingCategory({ ...editingCategory, parentId: value })}
             >
               <SelectTrigger>
-                <SelectValue placeholder='Parent Category' />
+                <SelectValue placeholder="Parent Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='0'>None</SelectItem>
+                <SelectItem value="0">None</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
@@ -243,3 +198,4 @@ export default function CategoriesPage() {
     </div>
   )
 }
+

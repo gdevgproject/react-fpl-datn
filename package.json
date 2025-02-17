@@ -1,6 +1,6 @@
 {
   "name": "datn-fpl",
-  "version": "3.1.0",
+  "version": "1.8.9",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -58,6 +58,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
+    "react-error-boundary": "latest",
     "uuid": "latest"
   },
   "devDependencies": {

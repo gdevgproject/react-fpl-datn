@@ -1,28 +1,18 @@
-'use client'
+"use client"
 
-import type React from 'react'
+import type React from "react"
 
-import { Button } from '@/components/ui/button'
-import { ErrorMessage } from '@/components/ui/error-message'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { type Product, fetchProduct, updateProduct } from '@/lib/mockData'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ErrorMessage } from "@/components/ui/error-message"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { type Product, fetchProduct, updateProduct } from "@/lib/mockData"
 
-export default function EditProductPage({
-  params
-}: {
-  params: { id: string }
-}) {
+export default function EditProductPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [product, setProduct] = useState<Product | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -38,10 +28,10 @@ export default function EditProductPage({
         if (fetchedProduct) {
           setProduct(fetchedProduct)
         } else {
-          setError('Product not found')
+          setError("Product not found")
         }
       } catch (err) {
-        setError('Failed to fetch product. Please try again.')
+        setError("Failed to fetch product. Please try again.")
       } finally {
         setIsLoading(false)
       }
@@ -64,76 +54,65 @@ export default function EditProductPage({
     setError(null)
     try {
       await updateProduct(product.id, product)
-      router.push('/admin/products')
+      router.push("/admin/products")
     } catch (err) {
-      setError('Failed to save product. Please try again.')
+      setError("Failed to save product. Please try again.")
     } finally {
       setIsSaving(false)
     }
   }
 
   if (isLoading) return <LoadingSpinner />
-  if (!product) return <ErrorMessage message='Product not found' />
+  if (!product) return <ErrorMessage message="Product not found" />
 
   return (
     <div>
-      <h2 className='text-2xl font-bold mb-6'>Edit Product</h2>
+      <h2 className="text-2xl font-bold mb-6">Edit Product</h2>
       {error && <ErrorMessage message={error} />}
-      <form onSubmit={handleSubmit} className='space-y-4'>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor='name'>Name</Label>
-          <Input
-            id='name'
-            value={product.name}
-            onChange={(e) => handleChange('name', e.target.value)}
-            required
-          />
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" value={product.name} onChange={(e) => handleChange("name", e.target.value)} required />
         </div>
         <div>
-          <Label htmlFor='price'>Price</Label>
+          <Label htmlFor="price">Price</Label>
           <Input
-            id='price'
-            type='number'
-            step='0.01'
+            id="price"
+            type="number"
+            step="0.01"
             value={product.price}
-            onChange={(e) =>
-              handleChange('price', Number.parseFloat(e.target.value))
-            }
+            onChange={(e) => handleChange("price", Number.parseFloat(e.target.value))}
             required
           />
         </div>
         <div>
-          <Label htmlFor='stock'>Stock</Label>
+          <Label htmlFor="stock">Stock</Label>
           <Input
-            id='stock'
-            type='number'
+            id="stock"
+            type="number"
             value={product.stock}
-            onChange={(e) =>
-              handleChange('stock', Number.parseInt(e.target.value))
-            }
+            onChange={(e) => handleChange("stock", Number.parseInt(e.target.value))}
             required
           />
         </div>
         <div>
-          <Label htmlFor='category'>Category</Label>
-          <Select
-            value={product.category}
-            onValueChange={(value) => handleChange('category', value)}
-          >
+          <Label htmlFor="category">Category</Label>
+          <Select value={product.category} onValueChange={(value) => handleChange("category", value)}>
             <SelectTrigger>
-              <SelectValue placeholder='Select category' />
+              <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='Electronics'>Electronics</SelectItem>
-              <SelectItem value='Clothing'>Clothing</SelectItem>
-              <SelectItem value='Sports'>Sports</SelectItem>
+              <SelectItem value="Electronics">Electronics</SelectItem>
+              <SelectItem value="Clothing">Clothing</SelectItem>
+              <SelectItem value="Sports">Sports</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <Button type='submit' disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save Changes'}
+        <Button type="submit" disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </form>
     </div>
   )
 }
+

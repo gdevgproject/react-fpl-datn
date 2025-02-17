@@ -1,14 +1,14 @@
-'use client'
+"use client"
 
-import { OrderChart } from '@/components/admin/OrderChart'
-import { OrderStatistics } from '@/components/admin/OrderStatistics'
-import { RecentOrders } from '@/components/admin/RecentOrders'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ErrorMessage } from '@/components/ui/error-message'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import type { Order } from '@/lib/mockData'
-import { fetchOrders } from '@/lib/mockData'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from "react"
+import { OrderStatistics } from "@/components/admin/OrderStatistics"
+import { OrderChart } from "@/components/admin/OrderChart"
+import { RecentOrders } from "@/components/admin/RecentOrders"
+import { fetchOrders } from "@/lib/mockData"
+import type { Order } from "@/lib/mockData"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ErrorMessage } from "@/components/ui/error-message"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -21,7 +21,7 @@ export default function AdminDashboard() {
         const fetchedOrders = await fetchOrders()
         setOrders(fetchedOrders)
       } catch (err) {
-        setError('Failed to fetch orders. Please try again.')
+        setError("Failed to fetch orders. Please try again.")
       } finally {
         setIsLoading(false)
       }
@@ -35,21 +35,12 @@ export default function AdminDashboard() {
 
   const totalOrders = orders.length
   const newOrders = orders.filter(
-    (order) =>
-      new Date(order.createdAt).toDateString() === new Date().toDateString()
+    (order) => new Date(order.createdAt).toDateString() === new Date().toDateString(),
   ).length
-  const pendingOrders = orders.filter(
-    (order) => order.status === 'pending'
-  ).length
-  const shippingOrders = orders.filter(
-    (order) => order.status === 'shipped'
-  ).length
-  const completedOrders = orders.filter(
-    (order) => order.status === 'delivered'
-  ).length
-  const cancelledOrders = orders.filter(
-    (order) => order.status === 'cancelled'
-  ).length
+  const pendingOrders = orders.filter((order) => order.status === "pending").length
+  const shippingOrders = orders.filter((order) => order.status === "shipped").length
+  const completedOrders = orders.filter((order) => order.status === "delivered").length
+  const cancelledOrders = orders.filter((order) => order.status === "cancelled").length
 
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date()
@@ -59,22 +50,16 @@ export default function AdminDashboard() {
 
   const chartData = last7Days.map((date) => ({
     date: date.toLocaleDateString(),
-    orders: orders.filter(
-      (order) =>
-        new Date(order.createdAt).toDateString() === date.toDateString()
-    ).length
+    orders: orders.filter((order) => new Date(order.createdAt).toDateString() === date.toDateString()).length,
   }))
 
   const recentOrders = [...orders]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
 
   return (
-    <div className='space-y-4'>
-      <h2 className='text-3xl font-bold'>Dashboard</h2>
+    <div className="space-y-4">
+      <h2 className="text-3xl font-bold">Dashboard</h2>
 
       <OrderStatistics
         totalOrders={totalOrders}
@@ -98,3 +83,4 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
