@@ -46,7 +46,7 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle>Register</CardTitle>
+          <CardTitle>Register for Perfume Paradise</CardTitle>
         </CardHeader>
         <CardContent>
           {error && <ErrorMessage message={error} />}
