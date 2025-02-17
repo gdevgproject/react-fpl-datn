@@ -1,27 +1,31 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { fetchProduct, updateProduct } from "@/lib/mockData"
-import { toast } from "@/components/ui/use-toast"
+import { fetchProduct, deleteProduct } from "@/lib/mockData"
 import type { Product } from "@/lib/mockData"
+import { toast } from "@/components/ui/use-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import Image from "next/image"
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [product, setProduct] = useState<Product | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -42,35 +46,19 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     loadProduct()
   }, [params.id])
 
-  const handleChange = (key: keyof Product, value: string | number | File[]) => {
-    if (product) {
-      setProduct({ ...product, [key]: value })
-    }
-  }
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && product) {
-      setProduct({ ...product, images: Array.from(e.target.files).map((file) => URL.createObjectURL(file)) })
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleDelete = async () => {
     if (!product) return
-
-    setIsSaving(true)
-    setError(null)
+    setIsLoading(true)
     try {
-      await updateProduct(product.id, product)
+      await deleteProduct(product.id)
       toast({
-        title: "Product updated",
-        description: "The product has been successfully updated.",
+        title: "Product deleted",
+        description: "The product has been successfully deleted.",
       })
       router.push("/admin/products")
     } catch (err) {
-      setError("Failed to update product. Please try again.")
-    } finally {
-      setIsSaving(false)
+      setError("Failed to delete product. Please try again.")
+      setIsLoading(false)
     }
   }
 
@@ -81,116 +69,133 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Edit Product</CardTitle>
+        <CardTitle>Product Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" value={product.name} onChange={(e) => handleChange("name", e.target.value)} required />
+            <h3 className="text-lg font-semibold mb-2">General Information</h3>
+            <p>
+              <strong>Name:</strong> {product.name}
+            </p>
+            <p>
+              <strong>Perfume Code:</strong> {product.perfume_code}
+            </p>
+            <p>
+              <strong>Description:</strong> {product.description}
+            </p>
+            <p>
+              <strong>Category:</strong> {product.category}
+            </p>
+            <p>
+              <strong>Fragrance Category:</strong> {product.fragrance_category_id}
+            </p>
+            <p>
+              <strong>Brand:</strong> {product.fragrance_brand_id}
+            </p>
+            <p>
+              <strong>Gender:</strong> {product.gender}
+            </p>
+            <p>
+              <strong>Origin:</strong> {product.origin}
+            </p>
+            <p>
+              <strong>Status:</strong> {product.status}
+            </p>
+            <p>
+              <strong>Is Hot:</strong> {product.is_hot}
+            </p>
           </div>
           <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={product.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              required
-            />
+            <h3 className="text-lg font-semibold mb-2">Pricing</h3>
+            <p>
+              <strong>Price:</strong> ${product.price.toFixed(2)}
+            </p>
+            <p>
+              <strong>Listed Price:</strong> ${product.listed_price.toFixed(2)}
+            </p>
+            <p>
+              <strong>Import Price:</strong> ${product.import_price.toFixed(2)}
+            </p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">Inventory</h3>
+            <p>
+              <strong>Stock:</strong> {product.stock}
+            </p>
+            <p>
+              <strong>Volume:</strong> {product.volume.join(", ")} ml
+            </p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">Fragrance Details</h3>
+            <p>
+              <strong>Concentration:</strong> {product.concentration}
+            </p>
+            <p>
+              <strong>Top Notes:</strong> {product.top_notes.join(", ")}
+            </p>
+            <p>
+              <strong>Middle Notes:</strong> {product.middle_notes.join(", ")}
+            </p>
+            <p>
+              <strong>Base Notes:</strong> {product.base_notes.join(", ")}
+            </p>
+            <p>
+              <strong>Ingredients:</strong> {product.ingredients.join(", ")}
+            </p>
+            <p>
+              <strong>Longevity:</strong> {product.longevity}
+            </p>
+            <p>
+              <strong>Sillage:</strong> {product.sillage}
+            </p>
           </div>
-          <div>
-            <Label htmlFor="price">Price</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              value={product.price}
-              onChange={(e) => handleChange("price", Number.parseFloat(e.target.value))}
-              required
-            />
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-2">Product Images</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {product.images.map((image, index) => (
+              <div key={index} className="relative aspect-square">
+                <Image
+                  src={image || "/placeholder.svg"}
+                  alt={`${product.name} - Image ${index + 1}`}
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-lg"
+                />
+              </div>
+            ))}
           </div>
-          <div>
-            <Label htmlFor="category">Category</Label>
-            <Select value={product.category} onValueChange={(value) => handleChange("category", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Perfume">Perfume</SelectItem>
-                <SelectItem value="Cologne">Cologne</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="gender">Gender</Label>
-            <Select value={product.gender} onValueChange={(value) => handleChange("gender", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="unisex">Unisex</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="ingredients">Ingredients</Label>
-            <Textarea
-              id="ingredients"
-              value={product.ingredients}
-              onChange={(e) => handleChange("ingredients", e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="origin">Origin</Label>
-            <Input
-              id="origin"
-              value={product.origin}
-              onChange={(e) => handleChange("origin", e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="volume">Volume</Label>
-            <Input
-              id="volume"
-              value={product.volume}
-              onChange={(e) => handleChange("volume", e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="stock">Stock</Label>
-            <Input
-              id="stock"
-              type="number"
-              value={product.stock}
-              onChange={(e) => handleChange("stock", Number.parseInt(e.target.value))}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="images">Images</Label>
-            <Input id="images" type="file" multiple onChange={handleImageChange} />
-          </div>
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select value={product.status} onValueChange={(value) => handleChange("status", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="hidden">Hidden</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save Changes"}
+        </div>
+
+        <div className="flex justify-end space-x-4 mt-6">
+          <Button variant="outline" onClick={() => router.push("/admin/products")}>
+            Back to List
           </Button>
-        </form>
+          <Button onClick={() => router.push(`/admin/products/${product.id}/edit`)}>Edit</Button>
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="destructive">Delete</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Are you sure you want to delete this product?</DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete the product and remove the data from our
+                  servers.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDelete}>
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardContent>
     </Card>
   )
