@@ -43,6 +43,10 @@ export default function LoginPage() {
     try {
       const user = await login(email, password)
       if (user) {
+        // Set cookie so middleware can detect user info
+        document.cookie = `user=${encodeURIComponent(
+          JSON.stringify(user)
+        )}; path=/;`
         localStorage.setItem('user', JSON.stringify(user))
         if (user.role === 'admin') {
           router.push('/admin')
