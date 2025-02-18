@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,105 +12,105 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { fetchUser, updateUser } from "@/lib/mockData"
-import type { User } from "@/lib/mockData"
+import { register as registerUser } from "@/lib/mockData"
 import { toast } from "@/components/ui/use-toast"
 
-const userSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email format"),
-  role: z.enum(["admin", "user"]),
-  status: z.enum(["active", "inactive", "blocked"]),
-  phone: z.string().optional(),
-  birthday: z.string().optional(),
-  gender: z.enum(["male", "female", "other"]).optional(),
-})
+const userSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name must not exceed 50 characters"),
+    email: z.string().email("Invalid email format"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      }),
+    confirmPassword: z.string(),
+    role: z.enum(["admin", "user"]),
+    status: z.enum(["active", "inactive", "blocked"]),
+    phone: z.string().optional(),
+    birthday: z.string().optional(),
+    gender: z.enum(["male", "female", "other"]).optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
 
 type UserFormData = z.infer<typeof userSchema>
 
-export default function EditUserPage({ params }: { params: { id: string } }) {
+export default function CreateUserPage() {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const {
-    control,
+    register,
     handleSubmit,
+    control,
     formState: { errors },
-    reset,
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
+    defaultValues: {
+      role: "user",
+      status: "active",
+    },
   })
-
-  useEffect(() => {
-    const loadUser = async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const fetchedUser = await fetchUser(params.id)
-        if (fetchedUser) {
-          setUser(fetchedUser)
-          reset({
-            name: fetchedUser.name,
-            email: fetchedUser.email,
-            role: fetchedUser.role,
-            status: fetchedUser.status,
-            phone: fetchedUser.phone,
-            birthday: fetchedUser.birthday,
-            gender: fetchedUser.gender,
-          })
-        } else {
-          setError("User not found")
-        }
-      } catch (err) {
-        setError("Failed to fetch user. Please try again.")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadUser()
-  }, [params.id, reset])
 
   const onSubmit = async (data: UserFormData) => {
     setIsLoading(true)
-    setError(null)
     try {
-      await updateUser(params.id, data)
+      await registerUser(data.name, data.email, data.password)
       toast({
-        title: "User updated",
-        description: "The user has been successfully updated.",
+        title: "User created",
+        description: "The user has been successfully created.",
       })
       router.push("/admin/users")
-    } catch (err) {
-      setError("Failed to update user. Please try again.")
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create the user. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (isLoading) return <LoadingSpinner />
-  if (error) return <ErrorMessage message={error} />
-  if (!user) return null
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Edit User</CardTitle>
+        <CardTitle>Create New User</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="name">Name</Label>
-            <Controller name="name" control={control} render={({ field }) => <Input {...field} />} />
+            <Input id="name" {...register("name")} placeholder="Enter full name" />
             {errors.name && <ErrorMessage message={errors.name.message || "Error"} />}
           </div>
 
           <div>
             <Label htmlFor="email">Email</Label>
-            <Controller name="email" control={control} render={({ field }) => <Input {...field} type="email" />} />
+            <Input id="email" type="email" {...register("email")} placeholder="Enter email address" />
             {errors.email && <ErrorMessage message={errors.email.message || "Error"} />}
+          </div>
+
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" {...register("password")} placeholder="Enter password" />
+            {errors.password && <ErrorMessage message={errors.password.message || "Error"} />}
+          </div>
+
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              {...register("confirmPassword")}
+              placeholder="Confirm password"
+            />
+            {errors.confirmPassword && <ErrorMessage message={errors.confirmPassword.message || "Error"} />}
           </div>
 
           <div>
@@ -119,7 +119,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
               name="role"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -139,7 +139,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
               name="status"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -155,22 +155,24 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
           </div>
 
           <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Controller name="phone" control={control} render={({ field }) => <Input {...field} />} />
+            <Label htmlFor="phone">Phone (Optional)</Label>
+            <Input id="phone" {...register("phone")} placeholder="Enter phone number" />
+            {errors.phone && <ErrorMessage message={errors.phone.message || "Error"} />}
           </div>
 
           <div>
-            <Label htmlFor="birthday">Birthday</Label>
-            <Controller name="birthday" control={control} render={({ field }) => <Input {...field} type="date" />} />
+            <Label htmlFor="birthday">Birthday (Optional)</Label>
+            <Input id="birthday" type="date" {...register("birthday")} />
+            {errors.birthday && <ErrorMessage message={errors.birthday.message || "Error"} />}
           </div>
 
           <div>
-            <Label htmlFor="gender">Gender</Label>
+            <Label htmlFor="gender">Gender (Optional)</Label>
             <Controller
               name="gender"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -182,13 +184,16 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
                 </Select>
               )}
             />
+            {errors.gender && <ErrorMessage message={errors.gender.message || "Error"} />}
           </div>
 
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => router.push("/admin/users")}>
               Cancel
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <LoadingSpinner /> : "Create User"}
+            </Button>
           </div>
         </form>
       </CardContent>

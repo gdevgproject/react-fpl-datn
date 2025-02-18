@@ -3,44 +3,44 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { fetchUser, updateUser, changeUserPassword } from "@/lib/mockData"
-import type { User } from "@/lib/mockData"
+import { fetchUser, updateUser, fetchOrdersByUserId } from "@/lib/mockData"
+import type { User, Order } from "@/lib/mockData"
 import { toast } from "@/components/ui/use-toast"
+import { format } from "date-fns"
 
 export default function UserDetailsPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [newPassword, setNewPassword] = useState("")
 
   useEffect(() => {
-    loadUser()
-  }, [])
-
-  const loadUser = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const fetchedUser = await fetchUser(params.id)
-      if (fetchedUser) {
-        setUser(fetchedUser)
-      } else {
-        setError("User not found")
+    const loadUserAndOrders = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const [fetchedUser, fetchedOrders] = await Promise.all([fetchUser(params.id), fetchOrdersByUserId(params.id)])
+        if (fetchedUser) {
+          setUser(fetchedUser)
+          setOrders(fetchedOrders)
+        } else {
+          setError("User not found")
+        }
+      } catch (err) {
+        setError("Failed to fetch user details. Please try again.")
+      } finally {
+        setIsLoading(false)
       }
-    } catch (err) {
-      setError("Failed to fetch user. Please try again.")
-    } finally {
-      setIsLoading(false)
     }
-  }
+
+    loadUserAndOrders()
+  }, [params.id])
 
   const handleStatusChange = async (newStatus: User["status"]) => {
     if (!user) return
@@ -48,33 +48,13 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
     setError(null)
     try {
       const updatedUser = await updateUser(user.id, { status: newStatus })
-      if (updatedUser) {
-        setUser(updatedUser)
-        toast({
-          title: "User status updated",
-          description: `User status changed to ${newStatus}.`,
-        })
-      }
+      setUser(updatedUser)
+      toast({
+        title: "User status updated",
+        description: `User status changed to ${newStatus}.`,
+      })
     } catch (err) {
       setError("Failed to update user status. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handlePasswordChange = async () => {
-    if (!user || !newPassword) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      await changeUserPassword(user.id, newPassword)
-      toast({
-        title: "Password changed",
-        description: "The user's password has been successfully changed.",
-      })
-      setNewPassword("")
-    } catch (err) {
-      setError("Failed to change user password. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -85,100 +65,138 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
   if (!user) return null
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">User Details</h1>
-      <Card className="mb-6">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">User Details</h1>
+        <div className="space-x-2">
+          <Button onClick={() => router.push(`/admin/users/${user.id}/edit`)}>Edit User</Button>
+          <Button variant="outline" onClick={() => router.push("/admin/users")}>
+            Back to Users
+          </Button>
+        </div>
+      </div>
+
+      <Card>
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle>User Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <div><strong>ID:</strong> {user.id}</div>
-            <div><strong>Name:</strong> {user.name}</div>
-            <div><strong>Email:</strong> {user.email}</div>
-            <div><strong>Role:</strong> {user.role}</div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <strong>Status:</strong>{" "}
-              <Badge variant={user.status === "active" ? "success" : "secondary"}>{user.status}</Badge>
+              <p>
+                <strong>User Code:</strong> {user.user_code}
+              </p>
+              <p>
+                <strong>Name:</strong> {user.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {user.email}
+              </p>
+              <p>
+                <strong>Role:</strong> {user.role}
+              </p>
+              <p>
+                <strong>Status:</strong>{" "}
+                <Badge
+                  variant={
+                    user.status === "active" ? "success" : user.status === "inactive" ? "warning" : "destructive"
+                  }
+                >
+                  {user.status}
+                </Badge>
+              </p>
             </div>
-            <div><strong>Phone:</strong> {user.phone}</div>
-            <div><strong>Registered At:</strong> {new Date(user.registeredAt).toLocaleString()}</div>
-          </div>
-          <div className="mt-4">
-            <Select value={user.status} onValueChange={handleStatusChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Update Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="blocked">Blocked</SelectItem>
-              </SelectContent>
-            </Select>
+            <div>
+              <p>
+                <strong>Phone:</strong> {user.phone}
+              </p>
+              <p>
+                <strong>Birthday:</strong> {user.birthday ? format(new Date(user.birthday), "PPP") : "N/A"}
+              </p>
+              <p>
+                <strong>Gender:</strong> {user.gender || "N/A"}
+              </p>
+              <p>
+                <strong>Registered At:</strong> {format(new Date(user.registered_at), "PPP")}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
-      <Card className="mb-6">
+
+      <Card>
         <CardHeader>
           <CardTitle>Address Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <h3 className="text-lg font-semibold mb-2">Default Address</h3>
-          <div>{user.defaultAddress.street}</div>
-          <div>
-            {user.defaultAddress.city}, {user.defaultAddress.state} {user.defaultAddress.zipCode}
-          </div>
-          <div>{user.defaultAddress.country}</div>
-          {user.addresses.length > 0 && (
-            <>
-              <h3 className="text-lg font-semibold mt-4 mb-2">Additional Addresses</h3>
-              {user.addresses.map((address, index) => (
-                <div key={address.id} className="mb-2">
-                  <div>
-                    <strong>Address {index + 1}</strong>
-                  </div>
-                  <div>{address.street}</div>
-                  <div>
-                    {address.city}, {address.state} {address.zipCode}
-                  </div>
-                  <div>{address.country}</div>
-                </div>
+          {user.addresses.map((address, index) => (
+            <div key={address.id} className="mb-4">
+              <h3 className="font-semibold">{index === 0 ? "Default Address" : `Address ${index + 1}`}</h3>
+              <p>{address.street}</p>
+              <p>
+                {address.city}, {address.state} {address.zipCode}
+              </p>
+              <p>{address.country}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Order History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Total Amount</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell>{order.order_code}</TableCell>
+                  <TableCell>{format(new Date(order.created_at), "PPP")}</TableCell>
+                  <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        order.status === "delivered"
+                          ? "success"
+                          : order.status === "cancelled"
+                            ? "destructive"
+                            : "default"
+                      }
+                    >
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
               ))}
-            </>
-          )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-      <Card className="mb-6">
+
+      <Card>
         <CardHeader>
-          <CardTitle>Order Information</CardTitle>
+          <CardTitle>Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div><strong>Total Orders:</strong> {user.totalOrders}</div>
-          <div><strong>Total Spent:</strong> ${user.totalSpent.toFixed(2)}</div>
-        </CardContent>
-      </Card>
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="new-password">New Password</Label>
-            <Input
-              id="new-password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <Button onClick={handlePasswordChange} disabled={!newPassword}>
-              Change Password
+          <div className="space-x-2">
+            <Button onClick={() => handleStatusChange(user.status === "active" ? "inactive" : "active")}>
+              {user.status === "active" ? "Deactivate" : "Activate"} User
+            </Button>
+            <Button variant="destructive" onClick={() => handleStatusChange("blocked")}>
+              Block User
             </Button>
           </div>
         </CardContent>
       </Card>
-      <Button onClick={() => router.push("/admin/users")} className="mt-6">
-        Back to Users
-      </Button>
     </div>
   )
 }
