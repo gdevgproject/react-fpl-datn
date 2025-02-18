@@ -891,6 +891,11 @@ export async function fetchCategories(): Promise<Category[]> {
   return categories
 }
 
+export async function fetchCategory(id: string): Promise<Category | undefined> {
+  await delay(DELAY_SHORT)
+  return categories.find((c) => c.id === id)
+}
+
 export async function createCategory(
   category: Omit<Category, 'id' | 'created_at' | 'updated_at'>
 ): Promise<Category> {
@@ -1235,4 +1240,3 @@ export async function deleteDiscountProduct(id: string): Promise<void> {
   if (index === -1) throw new Error('Discount product not found')
   discount_products.splice(index, 1)
 }
-
