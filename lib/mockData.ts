@@ -1241,3 +1241,4 @@ export async function deleteDiscountProduct(id: string): Promise<void> {
   if (index === -1) throw new Error('Discount product not found')
   discount_products.splice(index, 1)
 }
+

@@ -1,7 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -10,6 +8,8 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import Link from 'next/link'
+import { useEffect } from 'react'
 import { FallbackProps } from 'react-error-boundary'
 
 export default function Error({ error, resetErrorBoundary }: FallbackProps) {
@@ -39,3 +39,4 @@ export default function Error({ error, resetErrorBoundary }: FallbackProps) {
     </div>
   )
 }
+

@@ -101,3 +101,4 @@ export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     </>
   )
 }
+
