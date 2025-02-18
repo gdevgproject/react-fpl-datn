@@ -1,6 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,32 +13,44 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { fetchSettings, updateSettings } from "@/lib/mockData"
+import { toast } from "@/components/ui/use-toast"
+
+const settingsSchema = z.object({
+  general: z.object({
+    siteName: z.string().min(1, "Site name is required"),
+    siteUrl: z.string().url("Invalid URL"),
+    adminEmail: z.string().email("Invalid email"),
+  }),
+  emailTemplates: z.object({
+    welcome: z.string().min(1, "Welcome email template is required"),
+    orderConfirmation: z.string().min(1, "Order confirmation email template is required"),
+    passwordReset: z.string().min(1, "Password reset email template is required"),
+  }),
+})
+
+type SettingsFormData = z.infer<typeof settingsSchema>
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState({
-    general: {
-      siteName: "",
-      siteUrl: "",
-      adminEmail: "",
-    },
-    emailTemplates: {
-      welcome: "",
-      orderConfirmation: "",
-      passwordReset: "",
-    },
-  })
-
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<SettingsFormData>({
+    resolver: zodResolver(settingsSchema),
+  })
 
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true)
       setError(null)
       try {
-        const fetchedSettings = await fetchSettings()
-        setSettings(fetchedSettings)
+        const settings = await fetchSettings()
+        reset(settings)
       } catch (err) {
         setError("Failed to fetch settings. Please try again.")
       } finally {
@@ -44,44 +59,32 @@ export default function SettingsPage() {
     }
 
     loadSettings()
-  }, [])
+  }, [reset])
 
-  const handleGeneralSettingsChange = (key: string, value: string) => {
-    setSettings({
-      ...settings,
-      general: { ...settings.general, [key]: value },
-    })
-  }
-
-  const handleEmailTemplateChange = (key: string, value: string) => {
-    setSettings({
-      ...settings,
-      emailTemplates: { ...settings.emailTemplates, [key]: value },
-    })
-  }
-
-  const handleSaveSettings = async () => {
-    setIsSaving(true)
+  const onSubmit = async (data: SettingsFormData) => {
+    setIsLoading(true)
     setError(null)
     try {
-      await updateSettings(settings)
-      // Settings saved successfully
+      await updateSettings(data)
+      toast({
+        title: "Settings updated",
+        description: "Your settings have been successfully updated.",
+      })
     } catch (err) {
-      setError("Failed to save settings. Please try again.")
+      setError("Failed to update settings. Please try again.")
     } finally {
-      setIsSaving(false)
+      setIsLoading(false)
     }
   }
 
   if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorMessage message={error} />
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Settings</h2>
-      {error && <ErrorMessage message={error} />}
+    <form onSubmit={handleSubmit(onSubmit)}>
       <Tabs defaultValue="general">
         <TabsList>
-          <TabsTrigger value="general">General Settings</TabsTrigger>
+          <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="email">Email Templates</TabsTrigger>
         </TabsList>
         <TabsContent value="general">
@@ -89,37 +92,22 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
             </CardHeader>
-            <CardContent>
-              <form className="space-y-4">
-                <div>
-                  <Label htmlFor="siteName">Site Name</Label>
-                  <Input
-                    id="siteName"
-                    value={settings.general.siteName}
-                    onChange={(e) => handleGeneralSettingsChange("siteName", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="siteUrl">Site URL</Label>
-                  <Input
-                    id="siteUrl"
-                    value={settings.general.siteUrl}
-                    onChange={(e) => handleGeneralSettingsChange("siteUrl", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="adminEmail">Admin Email</Label>
-                  <Input
-                    id="adminEmail"
-                    type="email"
-                    value={settings.general.adminEmail}
-                    onChange={(e) => handleGeneralSettingsChange("adminEmail", e.target.value)}
-                  />
-                </div>
-                <Button onClick={handleSaveSettings} disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save Settings"}
-                </Button>
-              </form>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="siteName">Site Name</Label>
+                <Input id="siteName" {...register("general.siteName")} />
+                {errors.general?.siteName && <ErrorMessage message={errors.general.siteName.message || "Error"} />}
+              </div>
+              <div>
+                <Label htmlFor="siteUrl">Site URL</Label>
+                <Input id="siteUrl" {...register("general.siteUrl")} />
+                {errors.general?.siteUrl && <ErrorMessage message={errors.general.siteUrl.message || "Error"} />}
+              </div>
+              <div>
+                <Label htmlFor="adminEmail">Admin Email</Label>
+                <Input id="adminEmail" type="email" {...register("general.adminEmail")} />
+                {errors.general?.adminEmail && <ErrorMessage message={errors.general.adminEmail.message || "Error"} />}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -128,41 +116,50 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Email Templates</CardTitle>
             </CardHeader>
-            <CardContent>
-              <form className="space-y-4">
-                <div>
-                  <Label htmlFor="welcomeEmail">Welcome Email</Label>
-                  <Textarea
-                    id="welcomeEmail"
-                    value={settings.emailTemplates.welcome}
-                    onChange={(e) => handleEmailTemplateChange("welcome", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="orderConfirmation">Order Confirmation</Label>
-                  <Textarea
-                    id="orderConfirmation"
-                    value={settings.emailTemplates.orderConfirmation}
-                    onChange={(e) => handleEmailTemplateChange("orderConfirmation", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="passwordReset">Password Reset</Label>
-                  <Textarea
-                    id="passwordReset"
-                    value={settings.emailTemplates.passwordReset}
-                    onChange={(e) => handleEmailTemplateChange("passwordReset", e.target.value)}
-                  />
-                </div>
-                <Button onClick={handleSaveSettings} disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save Templates"}
-                </Button>
-              </form>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="welcomeEmail">Welcome Email</Label>
+                <Controller
+                  name="emailTemplates.welcome"
+                  control={control}
+                  render={({ field }) => <Textarea id="welcomeEmail" {...field} />}
+                />
+                {errors.emailTemplates?.welcome && (
+                  <ErrorMessage message={errors.emailTemplates.welcome.message || "Error"} />
+                )}
+              </div>
+              <div>
+                <Label htmlFor="orderConfirmationEmail">Order Confirmation Email</Label>
+                <Controller
+                  name="emailTemplates.orderConfirmation"
+                  control={control}
+                  render={({ field }) => <Textarea id="orderConfirmationEmail" {...field} />}
+                />
+                {errors.emailTemplates?.orderConfirmation && (
+                  <ErrorMessage message={errors.emailTemplates.orderConfirmation.message || "Error"} />
+                )}
+              </div>
+              <div>
+                <Label htmlFor="passwordResetEmail">Password Reset Email</Label>
+                <Controller
+                  name="emailTemplates.passwordReset"
+                  control={control}
+                  render={({ field }) => <Textarea id="passwordResetEmail" {...field} />}
+                />
+                {errors.emailTemplates?.passwordReset && (
+                  <ErrorMessage message={errors.emailTemplates.passwordReset.message || "Error"} />
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      <div className="mt-6">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <LoadingSpinner /> : "Save Settings"}
+        </Button>
+      </div>
+    </form>
   )
 }
 
