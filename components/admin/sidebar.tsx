@@ -1,92 +1,103 @@
-import Link from "next/link"
-import { Home, Package, ShoppingCart, Users, Settings, Tag, Layers } from "lucide-react"
+'use client'
 
-export function Sidebar() {
-  return (
-    <div className="flex flex-col w-64 bg-gray-800">
-      <div className="flex items-center justify-center h-20 shadow-md">
-        <h1 className="text-3xl font-bold text-white">Admin</h1>
-      </div>
-      <ul className="flex flex-col py-4">
-        <li>
-          <Link
-            href="/admin"
-            className="flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-gray-300 hover:text-white"
-          >
-            <span className="inline-flex items-center justify-center h-12 w-12 text-lg text-gray-400">
-              <Home />
-            </span>
-            <span className="text-sm font-medium">Dashboard</span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/products"
-            className="flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-gray-300 hover:text-white"
-          >
-            <span className="inline-flex items-center justify-center h-12 w-12 text-lg text-gray-400">
-              <Package />
-            </span>
-            <span className="text-sm font-medium">Products</span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/categories"
-            className="flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-gray-300 hover:text-white"
-          >
-            <span className="inline-flex items-center justify-center h-12 w-12 text-lg text-gray-400">
-              <Layers />
-            </span>
-            <span className="text-sm font-medium">Categories</span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/brands"
-            className="flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-gray-300 hover:text-white"
-          >
-            <span className="inline-flex items-center justify-center h-12 w-12 text-lg text-gray-400">
-              <Tag />
-            </span>
-            <span className="text-sm font-medium">Brands</span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/orders"
-            className="flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-gray-300 hover:text-white"
-          >
-            <span className="inline-flex items-center justify-center h-12 w-12 text-lg text-gray-400">
-              <ShoppingCart />
-            </span>
-            <span className="text-sm font-medium">Orders</span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/users"
-            className="flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-gray-300 hover:text-white"
-          >
-            <span className="inline-flex items-center justify-center h-12 w-12 text-lg text-gray-400">
-              <Users />
-            </span>
-            <span className="text-sm font-medium">Users</span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/admin/settings"
-            className="flex flex-row items-center h-12 transform hover:translate-x-2 transition-transform ease-in duration-200 text-gray-300 hover:text-white"
-          >
-            <span className="inline-flex items-center justify-center h-12 w-12 text-lg text-gray-400">
-              <Settings />
-            </span>
-            <span className="text-sm font-medium">Settings</span>
-          </Link>
-        </li>
-      </ul>
-    </div>
-  )
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import {
+  Home,
+  Image,
+  Layers,
+  Menu,
+  MessageSquare,
+  Package,
+  Percent,
+  Settings,
+  ShoppingCart,
+  Tag,
+  Users,
+  X
+} from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
+const menuItems = [
+  { icon: Home, label: 'Dashboard', href: '/admin' },
+  { icon: Package, label: 'Products', href: '/admin/products' },
+  { icon: Layers, label: 'Categories', href: '/admin/categories' },
+  { icon: Tag, label: 'Brands', href: '/admin/brands' },
+  { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
+  { icon: Users, label: 'Users', href: '/admin/users' },
+  { icon: Percent, label: 'Discounts', href: '/admin/discounts' },
+  { icon: Image, label: 'Slides', href: '/admin/slides' },
+  { icon: MessageSquare, label: 'Reviews', href: '/admin/reviews' },
+  { icon: Settings, label: 'Settings', href: '/admin/settings' }
+]
+
+interface SidebarProps {
+  isOpen: boolean
+  setIsOpen: (isOpen: boolean) => void
 }
 
+export function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
+  const pathname = usePathname()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  const toggleSidebar = () => setIsOpen(!isOpen)
+
+  return (
+    <>
+      <Button
+        variant='ghost'
+        size='icon'
+        onClick={toggleSidebar}
+        className='fixed top-4 left-4 z-40 md:hidden' // Hide on larger screens
+      >
+        {isOpen ? <X className='h-6 w-6' /> : <Menu className='h-6 w-6' />}
+      </Button>
+      {/* Backdrop to close sidebar when clicking outside */}
+      {isOpen && (
+        <div
+          className='fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden'
+          onClick={() => setIsOpen(false)}
+        ></div>
+      )}
+      <div
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 w-64 bg-white text-black shadow-lg transition-transform duration-300 ease-in-out transform md:translate-x-0',
+          isOpen ? 'translate-x-0' : '-translate-x-full',
+          'md:relative md:shadow-none md:border-r' // Keep sidebar visible on larger screens
+        )}
+      >
+        <div className='flex items-center justify-between h-16 px-4 bg-gray-100'>
+          <Link href='/admin' className='text-2xl font-bold'>
+            Admin
+          </Link>
+        </div>
+        <nav className='mt-5 px-2'>
+          {menuItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200',
+                pathname === item.href
+                  ? 'bg-gray-200 text-black'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-black'
+              )}
+            >
+              <item.icon className='mr-3 h-5 w-5' />
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </>
+  )
+}
