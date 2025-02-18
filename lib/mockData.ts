@@ -290,7 +290,66 @@ export const products: Product[] = Array.from({ length: 20 }, (_, i) => ({
   view: Math.floor(Math.random() * 1000),
   is_hot: i % 3 === 0 ? 'yes' : 'no'
 }))
-// Tạo nhiều đơn hàng
+// Đảm bảo tạo users trước
+export const users: User[] = [
+  {
+    id: 'user1', // Thêm id cố định
+    user_code: `USER-ADMIN`,
+    name: 'Admin User',
+    email: 'admin@example.com',
+    password: '123', // Sẽ hash khi tích hợp thực tế
+    role: 'admin',
+    status: 'active',
+    phone: '+1234567890',
+    registered_at: now,
+    defaultAddressId: 'address1',
+    addresses: [
+      {
+        id: 'address1',
+        street: '123 Admin St',
+        city: 'Admin City',
+        state: 'Admin State',
+        country: 'Admin Country',
+        zipCode: '12345'
+      }
+    ],
+    totalOrders: 0,
+    totalSpent: 0,
+    created_at: now,
+    updated_at: now,
+    deleted_at: null
+  },
+  {
+    id: 'user2',
+    user_code: `USER-CUSTOMER`,
+    name: 'John Doe',
+    email: 'john@example.com',
+    password: 'userpassword',
+    role: 'user',
+    status: 'active',
+    phone: '+1987654321',
+    registered_at: now,
+    defaultAddressId: 'address2',
+    addresses: [
+      {
+        id: 'address2',
+        street: '456 User St',
+        city: 'User City',
+        state: 'User State',
+        country: 'User Country',
+        zipCode: '67890'
+      }
+    ],
+    totalOrders: 5,
+    totalSpent: 500.0,
+    created_at: now,
+    updated_at: now,
+    deleted_at: null
+  }
+  // ... thêm các user khác
+]
+
+// Sau đó tạo orders với userId trỏ đến users có thật
 export const orders: Order[] = Array.from({ length: 15 }, (_, i) => {
   const numProducts = Math.floor(Math.random() * 3) + 1 // 1-3 sản phẩm mỗi đơn
   const selectedProducts = Array.from({ length: numProducts }, () => ({
@@ -306,7 +365,7 @@ export const orders: Order[] = Array.from({ length: 15 }, (_, i) => {
   return {
     id: uuidv4(),
     order_code: `ORDER-${uuidv4()}`,
-    userId: `user${(i % 2) + 1}`, // 2 user thay phiên nhau
+    userId: i % 2 === 0 ? 'user1' : 'user2', // Sử dụng ID cố định của users
     products: selectedProducts,
     totalAmount,
     status: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'][
@@ -365,64 +424,6 @@ orders.forEach((order) => {
     })
   }
 })
-
-export const users: User[] = [
-  {
-    id: uuidv4(),
-    user_code: `USER-ADMIN`,
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: '123', // Sẽ hash khi tích hợp thực tế
-    role: 'admin',
-    status: 'active',
-    phone: '+1234567890',
-    registered_at: now,
-    defaultAddressId: 'address1',
-    addresses: [
-      {
-        id: 'address1',
-        street: '123 Admin St',
-        city: 'Admin City',
-        state: 'Admin State',
-        country: 'Admin Country',
-        zipCode: '12345'
-      }
-    ],
-    totalOrders: 0,
-    totalSpent: 0,
-    created_at: now,
-    updated_at: now,
-    deleted_at: null
-  },
-  {
-    id: uuidv4(),
-    user_code: `USER-CUSTOMER`,
-    name: 'John Doe',
-    email: 'john@example.com',
-    password: 'userpassword', // Sẽ hash khi tích hợp thực tế
-    role: 'user',
-    status: 'active',
-    phone: '+1987654321',
-    registered_at: now,
-    defaultAddressId: 'address2',
-    addresses: [
-      {
-        id: 'address2',
-        street: '456 User St',
-        city: 'User City',
-        state: 'User State',
-        country: 'User Country',
-        zipCode: '67890'
-      }
-    ],
-    totalOrders: 5,
-    totalSpent: 500.0,
-    created_at: now,
-    updated_at: now,
-    deleted_at: null
-  }
-  // ... thêm các user khác
-]
 
 export const categories: Category[] = [
   {

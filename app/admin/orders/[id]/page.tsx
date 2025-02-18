@@ -59,9 +59,21 @@ export default function OrderDetailsPage({
       setIsLoading(true)
       setError(null)
       try {
+        console.log('Fetching order with ID:', params.id)
         const fetchedOrder = await fetchOrder(params.id)
-        if (fetchedOrder) {
-          setOrder(fetchedOrder)
+
+        if (!fetchedOrder) {
+          console.log('Order not found')
+          setError('Order not found')
+          setIsLoading(false)
+          return
+        }
+
+        console.log('Found order:', fetchedOrder)
+        setOrder(fetchedOrder)
+
+        // Fetch additional data only if we have a valid order
+        try {
           const [fetchedProducts, fetchedUser, fetchedOrderHistory] =
             await Promise.all([
               Promise.all(
@@ -72,15 +84,24 @@ export default function OrderDetailsPage({
               fetchUser(fetchedOrder.userId),
               fetchOrderHistory(fetchedOrder.id)
             ])
+
+          if (!fetchedUser) {
+            setError('User not found')
+            setIsLoading(false)
+            return
+          }
+
           setProducts(
             fetchedProducts.filter((p): p is Product => p !== undefined)
           )
           setUser(fetchedUser)
           setOrderHistory(fetchedOrderHistory)
-        } else {
-          setError('Order not found')
+        } catch (err) {
+          console.error('Error fetching related data:', err)
+          setError('Failed to fetch order details')
         }
       } catch (err) {
+        console.error('Error loading order:', err)
         setError('Failed to fetch order details. Please try again.')
       } finally {
         setIsLoading(false)
@@ -111,8 +132,38 @@ export default function OrderDetailsPage({
   }
 
   if (isLoading) return <LoadingSpinner />
-  if (error) return <ErrorMessage message={error} />
-  if (!order || !user) return <ErrorMessage message='Order not found' />
+  if (error) {
+    return (
+      <div className='space-y-4'>
+        <div className='flex justify-between items-center'>
+          <h1 className='text-2xl font-bold'>Order Details</h1>
+          <Button
+            variant='outline'
+            onClick={() => router.push('/admin/orders')}
+          >
+            Back to Orders
+          </Button>
+        </div>
+        <ErrorMessage message={error} />
+      </div>
+    )
+  }
+  if (!order || !user) {
+    return (
+      <div className='space-y-4'>
+        <div className='flex justify-between items-center'>
+          <h1 className='text-2xl font-bold'>Order Details</h1>
+          <Button
+            variant='outline'
+            onClick={() => router.push('/admin/orders')}
+          >
+            Back to Orders
+          </Button>
+        </div>
+        <ErrorMessage message='Order or user information not found' />
+      </div>
+    )
+  }
 
   return (
     <div className='space-y-6'>
