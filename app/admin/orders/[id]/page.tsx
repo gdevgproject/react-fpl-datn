@@ -181,28 +181,43 @@ export default function OrderDetailsPage({
         <CardContent>
           <div className='grid grid-cols-2 gap-4'>
             <div>
-              <p>
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 <strong>Order Code:</strong> {order.order_code}
-              </p>
-              <p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 <strong>Status:</strong>{' '}
                 <Badge className={statusColors[order.status]}>
                   {order.status}
                 </Badge>
-              </p>
-              <p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 <strong>Total Amount:</strong> ${order.totalAmount.toFixed(2)}
-              </p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
             </div>
             <div>
-              <p>
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 <strong>Created At:</strong>{' '}
                 {format(new Date(order.created_at), 'PPpp')}
-              </p>
-              <p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 <strong>Updated At:</strong>{' '}
                 {format(new Date(order.updated_at), 'PPpp')}
-              </p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
               <div className='mt-2'>
                 <Select value={order.status} onValueChange={handleStatusChange}>
                   <SelectTrigger>
@@ -227,28 +242,45 @@ export default function OrderDetailsPage({
           <CardTitle>Customer Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>
+          <div>
+            {' '}
+            {/* Thay <p> bằng <div> */}
             <strong>Name:</strong> {user.name}
-          </p>
-          <p>
+          </div>{' '}
+          {/* Thay </p> bằng </div> */}
+          <div>
+            {' '}
+            {/* Thay <p> bằng <div> */}
             <strong>Email:</strong> {user.email}
-          </p>
-          <p>
+          </div>{' '}
+          {/* Thay </p> bằng </div> */}
+          <div>
+            {' '}
+            {/* Thay <p> bằng <div> */}
             <strong>Phone:</strong> {user.phone}
-          </p>
+          </div>{' '}
+          {/* Thay </p> bằng </div> */}
           {user.defaultAddressId && (
             <div>
-              <p>
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 <strong>Address:</strong>
-              </p>
-              <p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 {
                   user.addresses.find(
                     (addr) => addr.id === user.defaultAddressId
                   )?.street
                 }
-              </p>
-              <p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 {
                   user.addresses.find(
                     (addr) => addr.id === user.defaultAddressId
@@ -265,14 +297,18 @@ export default function OrderDetailsPage({
                     (addr) => addr.id === user.defaultAddressId
                   )?.zipCode
                 }
-              </p>
-              <p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
+              <div>
+                {' '}
+                {/* Thay <p> bằng <div> */}
                 {
                   user.addresses.find(
                     (addr) => addr.id === user.defaultAddressId
                   )?.country
                 }
-              </p>
+              </div>{' '}
+              {/* Thay </p> bằng </div> */}
             </div>
           )}
         </CardContent>
@@ -349,4 +385,3 @@ export default function OrderDetailsPage({
     </div>
   )
 }
-
